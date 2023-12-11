@@ -47,7 +47,7 @@ app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     return next();
   }
-  res.status(404).json({ messagex: '404 - Not Found' });
+  res.status(404).json({ messages: '404 - Not Found' });
 });
 
 app.listen(3000);
