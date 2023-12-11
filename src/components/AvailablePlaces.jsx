@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import Places from "./Places.jsx";
 import Errors from "./Errors";
 import { sortPlacesByDistance } from "../loc";
