@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import Places from "./components/Places.jsx";
 import Modal from "./components/Modal.jsx";
@@ -7,30 +7,19 @@ import logoImg from "./assets/logo.png";
 import AvailablePlaces from "./components/AvailablePlaces.jsx";
 import { fetchingUserPlaces, updatedUserPlaces } from "./components/https.js";
 import Error from "./components/Errors.jsx";
+import { useFetch } from "./hooks/useFetch.js";
 
 function App() {
   const selectedPlace = useRef();
-  const [isFetching, setIsFetching] = useState(false);
-  const [error, setError] = useState();
-  const [userPlaces, setUserPlaces] = useState([]);
   const [errorUpdating, setErrorUpdating] = useState();
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
-  useEffect(() => {
-    async function fetchPlaces() {
-      setIsFetching(true);
-      try {
-        const places = await fetchingUserPlaces();
-        setUserPlaces(places);
-      } catch (error) {
-        setError({
-          message: error.message || "failed to load user places",
-        });
-      }
-      setIsFetching(false);
-    }
-    fetchPlaces();
-  }, []);
+  const {
+    error,
+    isFetching,
+    fetchedData: userPlaces,
+    setFetchedData,
+  } = useFetch(fetchingUserPlaces, []);
 
   function handleStartRemovePlace(place) {
     setModalIsOpen(true);
@@ -42,7 +31,7 @@ function App() {
   }
 
   async function handleSelectPlace(selectedPlace) {
-    setUserPlaces((prevPickedPlaces) => {
+    setFetchedData((prevPickedPlaces) => {
       if (!prevPickedPlaces) {
         prevPickedPlaces = [];
       }
@@ -54,7 +43,7 @@ function App() {
     try {
       await updatedUserPlaces([selectedPlace, ...userPlaces]);
     } catch (error) {
-      setUserPlaces(userPlaces);
+      setFetchedData(userPlaces);
       setErrorUpdating({
         message: error.message || "404 - somthing went wrong",
       });
@@ -63,10 +52,8 @@ function App() {
 
   const handleRemovePlace = useCallback(
     async function handleRemovePlace() {
-      setUserPlaces((prevPickedPlaces) =>
-        prevPickedPlaces.filter(
-          (place) => place.id !== selectedPlace.current.id
-        )
+      setFetchedData((prevPickPlace) =>
+        prevPickPlace.filter((place) => place.id !== selectedPlace.current.id)
       );
 
       setModalIsOpen(false);
@@ -75,13 +62,13 @@ function App() {
           userPlaces.filter((place) => place.id !== selectedPlace.current.id)
         );
       } catch (error) {
-        setUserPlaces(userPlaces);
+        setFetchedData(userPlaces);
         setErrorUpdating({
           message: error.message || "failed to delete place",
         });
       }
     },
-    [userPlaces]
+    [userPlaces, setFetchedData]
   );
 
   function handleError() {
